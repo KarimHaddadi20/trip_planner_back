@@ -22,7 +22,7 @@ mongoose
 // Routes
 
 // GET /itineraires : pour récupérer tous les itinéraires.
-app.get("/itineraires", async (req, res) => {
+app.get("/itiner+aires", async (req, res) => {
   try {
     const dbItineraires = mongoose.connection.db.collection("itineraires");
     const itineraires = await dbItineraires.find({}).toArray();
@@ -74,3 +74,5 @@ app.put("/itineraires/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`http://127.0.0.1:${port}`);
 });
+
+
