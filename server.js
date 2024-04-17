@@ -2,20 +2,23 @@ import express from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
-import cors from "cors"; // Ajoutez cette ligne
+import cors from "cors";
+import { z } from 'zod';
 
 dotenv.config();
 
 const prisma = new PrismaClient();
 const app = express();
 const port = process.env.PORT || 3001;
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY; // Assurez-vous que cette variable d'environnement est définie
-
-const prePrompt =
-  "Tu es un planificateur de voyage, expert en tourisme. Pour la destination, le nombre de jours et le moyen de locomotion que je te donnerai à la fin du message, programme moi un itinéraire en plusieurs étapes Format de données souhaité: une liste d'élement en JSON, avec, pour chaque étape: - le nom du lieu (clef JSON: name) -sa position géographique (clef JSON: location-> avec latitude/longitude en numérique) - une courte description du lieu (clef JSON: description) Donne-moi uniquement cette liste d'étape JSON, tu as interdiction de rajouter des informations supplémentaires en dehors de la liste JSON.Tu ne dois pas rajouter de texte ou des commentaires après m'avoir envoyé la liste JSON.";
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
 app.use(express.json());
-app.use(cors()); // Ajoutez cette ligne
+app.use(cors());
+
+// Define Zod schema for PATCH /trips/:id
+const patchTripSchema = z.object({
+  prompt: z.string(),
+});
 
 // Routes
 
@@ -82,22 +85,27 @@ app.post("/trips", async (req, res) => {
     res.status(500).json({});
   }
 });
+
 // PATCH /trips/:id : pour modifier un voyage existant.
 app.patch("/trips/:id", async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const validatedData = patchTripSchema.parse(req.body);
     const trip = await prisma.trip.update({
       where: { id: Number(req.params.id) },
-      data: { prompt },
+      data: validatedData,
     });
     res.status(200).json(trip);
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({
-        error: "Une erreur s'est produite lors de la mise à jour du voyage.",
-      });
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: error.errors });
+    } else {
+      console.log(error);
+      res
+        .status(500)
+        .json({
+          error: "Une erreur s'est produite lors de la mise à jour du voyage.",
+        });
+    }
   }
 });
 
