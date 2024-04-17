@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
+import cors from "cors"; // Ajoutez cette ligne
+
 dotenv.config();
 
 const prisma = new PrismaClient();
@@ -10,6 +12,8 @@ const port = process.env.PORT || 3001;
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY; // Assurez-vous que cette variable d'environnement est définie
 
 app.use(express.json());
+app.use(cors()); // Ajoutez cette ligne
+
 
 // Routes
 
@@ -57,7 +61,7 @@ app.post("/trips", async (req, res) => {
           Authorization: `Bearer ${MISTRAL_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "mistral-large-latest",
+          model: "open-mistral-7b",
           messages: [{ role: "user", content: prompt }],
         }),
       }
