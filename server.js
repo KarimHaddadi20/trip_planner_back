@@ -11,9 +11,11 @@ const app = express();
 const port = process.env.PORT || 3001;
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY; // Assurez-vous que cette variable d'environnement est définie
 
+const prePrompt =
+  "Tu es un planificateur de voyage, expert en tourisme. Pour la destination, le nombre de jours et le moyen de locomotion que je te donnerai à la fin du message, programme moi un itinéraire en plusieurs étapes Format de données souhaité: une liste d'élement en JSON, avec, pour chaque étape: - le nom du lieu (clef JSON: name) -sa position géographique (clef JSON: location-> avec latitude/longitude en numérique) - une courte description du lieu (clef JSON: description) Donne-moi uniquement cette liste d'étape JSON, tu as interdiction de rajouter des informations supplémentaires en dehors de la liste JSON.Tu ne dois pas rajouter de texte ou des commentaires après m'avoir envoyé la liste JSON.";
+
 app.use(express.json());
 app.use(cors()); // Ajoutez cette ligne
-
 
 // Routes
 
@@ -91,7 +93,11 @@ app.patch("/trips/:id", async (req, res) => {
     res.status(200).json(trip);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du voyage." });
+    res
+      .status(500)
+      .json({
+        error: "Une erreur s'est produite lors de la mise à jour du voyage.",
+      });
   }
 });
 
