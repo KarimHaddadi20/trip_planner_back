@@ -78,8 +78,10 @@ app.post("/trips", async (req, res) => {
 
     // Utiliser la réponse de l'API Mistral pour créer un nouveau voyage
     const trip = await prisma.trip.create({
-      data: { prompt, output: JSON.parse(mistralData.choices[0].message.content) },
-
+      data: {
+        prompt,
+        output: JSON.parse(mistralData.choices[0].message.content),
+      },
     });
 
     res.status(200).json(trip);
