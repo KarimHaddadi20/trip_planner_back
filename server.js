@@ -112,6 +112,22 @@ app.patch("/trips/:id", async (req, res) => {
   }
 });
 
+
+// DELETE /trips/:id : pour supprimer un voyage existant.
+app.delete("/trips/:id", async (req, res) => {
+  try {
+    const trip = await prisma.trip.delete({
+      where: { id: Number(req.params.id) },
+    });
+    res.status(200).json(trip);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Une erreur s'est produite lors de la suppression du voyage.",
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`http://127.0.0.1:${port}`);
 });
