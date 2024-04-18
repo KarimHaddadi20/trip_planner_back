@@ -1,9 +1,9 @@
-import express from "express";
+import express, { json } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import fetch from "node-fetch";
 import cors from "cors";
-import { z } from 'zod';
+import { z } from "zod";
 
 dotenv.config();
 
@@ -47,6 +47,8 @@ app.get("/trips/:id", async (req, res) => {
 });
 
 // POST /trips : pour créer un nouveau voyage.
+const prePrompt =
+  "Tu es un planificateur de voyage, expert en tourisme. Pour la destination, le nombre de jours et le moyen de locomotion que je te donnerai à la fin du message, programme moi un itinéraire en plusieurs étapes Format de données souhaité: une liste d'élement en JSON, avec, pour chaque étape: - le nom du lieu (clef JSON: name) -sa position géographique (clef JSON: location-> avec latitude/longitude en numérique) - une courte description du lieu (clef JSON: description) Donne-moi uniquement cette liste d'étape JSON, tu as interdiction de rajouter des informations supplémentaires en dehors de la liste JSON.Tu ne dois pas rajouter de texte ou des commentaires après m'avoir envoyé la liste JSON.";
 app.post("/trips", async (req, res) => {
   const { prompt } = req.body;
 
@@ -66,8 +68,8 @@ app.post("/trips", async (req, res) => {
           Authorization: `Bearer ${MISTRAL_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "open-mistral-7b",
-          messages: [{ role: "user", content: prompt }],
+          model: "mistral-small-latest",
+          messages: [{ role: "user", content: prePrompt + "" + prompt }],
         }),
       }
     );
@@ -76,7 +78,8 @@ app.post("/trips", async (req, res) => {
 
     // Utiliser la réponse de l'API Mistral pour créer un nouveau voyage
     const trip = await prisma.trip.create({
-      data: { prompt, output: mistralData.choices[0].message.content },
+      data: { prompt, output: JSON.parse(mistralData.choices[0].message.content) },
+
     });
 
     res.status(200).json(trip);
@@ -100,11 +103,9 @@ app.patch("/trips/:id", async (req, res) => {
       res.status(400).json({ error: error.errors });
     } else {
       console.log(error);
-      res
-        .status(500)
-        .json({
-          error: "Une erreur s'est produite lors de la mise à jour du voyage.",
-        });
+      res.status(500).json({
+        error: "Une erreur s'est produite lors de la mise à jour du voyage.",
+      });
     }
   }
 });
