@@ -8,7 +8,8 @@ import { z } from "zod";
 dotenv.config();
 
 const prisma = new PrismaClient();
-const app = express();
+export const app = express();
+
 const port = process.env.PORT || 3001;
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
@@ -111,7 +112,6 @@ app.patch("/trips/:id", async (req, res) => {
     }
   }
 });
-
 
 // DELETE /trips/:id : pour supprimer un voyage existant.
 app.delete("/trips/:id", async (req, res) => {
